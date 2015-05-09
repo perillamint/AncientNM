@@ -51,3 +51,7 @@ config.log
 config.status
 autoscan.log
 configure.scan
+src/.deps
+
+# Binary
+src/ancientnmd
