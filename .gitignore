@@ -55,3 +55,6 @@ src/.deps
 
 # Binary
 src/ancientnmd
+
+# Others
+*~
