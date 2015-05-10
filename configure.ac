@@ -15,11 +15,14 @@ AC_PROG_CC_STDC
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h sys/socket.h])
+AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
 
 # Checks for library functions.
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memset socket])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
