@@ -15,6 +15,7 @@ AC_PROG_CC_STDC
 # Checks for libraries.
 
 # Checks for header files.
+AC_CHECK_HEADERS([arpa/inet.h netinet/in.h sys/socket.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
