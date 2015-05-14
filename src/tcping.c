@@ -20,10 +20,10 @@
 #include <config.h>
 #include "tcping.h"
 
-Tcping *new_Tcping(char *ifname)
+Tcping *new_Tcping(char *ifname, char *pingtarg )
 {
-  Tcping *tcping = malloc(sizeof (tcping));
-  memset(tcping, 0, sizeof (tcping));
+  Tcping *tcping = malloc(sizeof (Tcping));
+  memset(tcping, 0, sizeof (Tcping));
   
   tcping -> init_ping = init_ping;
 
@@ -36,6 +36,7 @@ Tcping *new_Tcping(char *ifname)
   memset(tcping -> _ifreq, 0, sizeof(struct ifreq));
   
   memcpy(tcping -> _ifreq -> ifr_name, ifname, IFNAMSIZ);
+  memcpy(tcping -> _pingtarg, pingtarg, strnlen(pingtarg, 40));
 
   return tcping;
 }
@@ -97,6 +98,7 @@ static int init_ping(Tcping *this)
 		    -> sin_addr.s_addr;
 
   //TODO: iphdr -> daddr from constructor
+  iphdr -> daddr = inet_pton(
 
   return 0;
 }

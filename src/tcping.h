@@ -16,6 +16,7 @@ typedef struct {
   int _header_len;
   void *_header;
   struct ifreq *_ifreq;
+  char _pingtarg[40];
 } Tcping;
 
 Tcping *new_Tcping();

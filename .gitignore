@@ -31,27 +31,12 @@
 # Debug files
 *.dSYM/
 
-# http://www.gnu.org/software/automake
-
-Makefile.in
-
-# http://www.gnu.org/software/autoconf
-
-/autom4te.cache
-/aclocal.m4
-/compile
-/configure
-/depcomp
-/install-sh
-/missing
-/stamp-h1
+# CMake
+CMakeCache.txt
+CMakeFiles
 Makefile
-config.h
-config.log
-config.status
-autoscan.log
-configure.scan
-src/.deps
+cmake_install.cmake
+install_manifest.txt
 
 # Binary
 src/ancientnmd
