@@ -1,22 +1,36 @@
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
+
+#include <sys/ioctl.h>
+#include <net/if.h>
+
 #include "ipv4sock.h"
 
 IPV4sock::IPV4sock(char *ifname) { 
-  this -> ifreq = malloc(sizeof(struct ifreq));
-  this -> header_len = sizeof(struct iphdr));
-  this -> packet_header = malloc(this -> header_len);
+  this -> ifreq = (struct ifreq*)malloc(sizeof(struct ifreq));
+  this -> header_len = sizeof(struct iphdr);
+  this -> iphdr = (struct iphdr*)malloc(this -> header_len);
 
-  memset(this -> packet_header, 0, this -> header_len);
+  memset(this -> iphdr, 0, this -> header_len);
   memset(this -> ifreq, 0, sizeof(struct ifreq));
   
-  memcpy(this -> ifreq -> ifr_name, ifname, IFNAMESZ);
+  memcpy(this -> ifreq -> ifr_name, ifname, IFNAMSIZ);
 }
 
 IPV4sock::~IPV4sock() {
-  if(this -> sockfd > -1) 
+  if(this -> sockfd > -1)
+    close(this -> sockfd);
+
+  free(this -> iphdr);
+  free(this -> ifreq);
+}
 
 int IPV4sock::open_socket() {
   int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
@@ -111,6 +125,6 @@ int IPV4sock::close_socket() {
     memcpy(pkt + this -> header_len, pktbody, pktbodysize);
   }
   
-  sendto(this -> sockfd, pkt, this -> header_len + pktbodysize, 0, &sockaddr, sizeof(sockaddr));
+  sendto(this -> sockfd, pkt, this -> header_len + pktbodysize, 0, (struct sockaddr*)&sockaddr, sizeof(struct sockaddr_in));
   return 0;
 }
