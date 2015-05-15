@@ -122,7 +122,7 @@ int IPV4sock::close_socket() {
 
   memcpy(pkt, this -> iphdr, this -> header_len);
   if(pktbodysize > 0) {
-    memcpy(pkt + this -> header_len, pktbody, pktbodysize);
+    memcpy((char*)pkt + this -> header_len, pktbody, pktbodysize);
   }
   
   sendto(this -> sockfd, pkt, this -> header_len + pktbodysize, 0, (struct sockaddr*)&sockaddr, sizeof(struct sockaddr_in));

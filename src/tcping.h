@@ -2,24 +2,20 @@
 #define __TCPING_H_
 
 #include <net/if.h>
+#include <pthread.h>
 
-typedef struct {
-  //Member func
-  int (*init_ping)();
-  int (*send_ping)();
-
-  //Member vars.
-
-  //Private stuff - DO NOT MANIPULATE THIS DIRECTLY.
-  //Private member.
-  int _sockfd;
-  int _header_len;
-  void *_header;
-  struct ifreq *_ifreq;
-  char _pingtarg[40];
-} Tcping;
-
-Tcping *new_Tcping();
-static int init_ping(Tcping *this);
+class TCPing {
+ public:
+  TCPing(int ipver, char *ifname, char *targetaddr, int port);
+  ~TCPing();
+  int init_ping();
+  int start_ping();
+  int stop_ping();
+ private:
+  void ping_thread(void *arg);
+  IPsock *ipsock;
+  pthread_t ping_pthread;
+  bool isActive;
+};
 
 #endif
