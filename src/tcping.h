@@ -6,13 +6,13 @@
 
 class TCPing {
  public:
-  TCPing(int ipver, char *ifname, char *targetaddr, int port);
+  TCPing(int ipver, const char *ifname, const char *targetaddr, int port);
   ~TCPing();
   int init_ping();
   int start_ping();
   int stop_ping();
  private:
-  void ping_thread(void *arg);
+  static void* ping_thread(void *arg);
   IPsock *ipsock;
   pthread_t ping_pthread;
   bool isActive;

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -13,10 +14,11 @@
 
 #include "ipv4sock.h"
 
-IPV4sock::IPV4sock(char *ifname) { 
+IPV4sock::IPV4sock(const char *ifname) { 
   this -> ifreq = (struct ifreq*)malloc(sizeof(struct ifreq));
   this -> header_len = sizeof(struct iphdr);
   this -> iphdr = (struct iphdr*)malloc(this -> header_len);
+  this -> sockfd = -1;
 
   memset(this -> iphdr, 0, this -> header_len);
   memset(this -> ifreq, 0, sizeof(struct ifreq));
@@ -32,9 +34,15 @@ IPV4sock::~IPV4sock() {
   free(this -> ifreq);
 }
 
-int IPV4sock::open_socket() {
-  int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+int IPV4sock::open_socket(const char *destaddr) {
   const static int yes = 1;
+  int sockfd;
+  
+  if(this -> sockfd != -1) {
+    return -1;
+  }
+  
+  sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
   
   if(sockfd < 0)
     return -1; //It fails
@@ -75,6 +83,7 @@ int IPV4sock::open_socket() {
   this -> iphdr -> ihl = this -> header_len / 4;
   this -> iphdr -> saddr = ((struct sockaddr_in *)&this -> ifreq
 			    -> ifr_addr) -> sin_addr.s_addr;
+  this -> iphdr -> daddr = inet_addr(destaddr);
 
   this -> sockfd = sockfd;
   
@@ -82,13 +91,35 @@ int IPV4sock::open_socket() {
 }
 
 int IPV4sock::close_socket() {
-  close(this -> sockfd);
+  if(this -> sockfd >= 0) {
+    close(this -> sockfd);
+  }
+  
   this -> sockfd = -1;
 
   return 0;
 }
 
- int IPV4sock::send_packet(uint8_t proto, uint8_t ttl, char* destaddr, uint16_t destport, void *pktbody, int pktbodysize) {
+//TODO: BUG HERE. NEED TO DEBUG
+int IPV4sock::getipaddr(char *addr) {
+  if(this -> sockfd < 0) {
+    return -1;
+  }
+  
+  if(ioctl(this -> sockfd, SIOCGIFADDR, this -> ifreq) < 0)
+  {
+    //Uh-oh. ioctl failed.
+    return -1;
+  }
+  
+  inet_ntop(AF_INET, (void*)&((struct sockaddr_in *)&this -> ifreq
+		      -> ifr_addr) -> sin_addr,
+	    addr, sizeof(struct in_addr));
+
+  return 0;
+}
+
+int IPV4sock::send_packet(uint8_t proto, uint8_t ttl, uint16_t destport, const void *pktbody, int pktbodysize) {
   void *pkt = malloc(this -> header_len + pktbodysize);
   struct sockaddr_in sockaddr;
 
@@ -98,7 +129,6 @@ int IPV4sock::close_socket() {
   
   this -> iphdr -> protocol = proto;
   this -> iphdr -> ttl = ttl;
-  this -> iphdr -> daddr = inet_addr(destaddr);
   this -> iphdr -> tot_len = (this -> header_len + pktbodysize) / 4;
   //TODO: generate packet id.
 
@@ -109,22 +139,25 @@ int IPV4sock::close_socket() {
 
   uint32_t sum = 0;
 
-  for(int i = 0; i < this -> header_len * 2; i++) {
-    sum += *(header + i);
+  for(int i = 0; i < this -> header_len / 2; i++) {
+    sum += ntohs(*(header + i));
   }
 
-  uint8_t chk = (sum & 0xF0000)  >> 16;
+  uint16_t chk = (sum & 0xFFFF0000) >> 16;
   sum += chk;
 
-  sum = !sum & 0xFFFF;
+  sum = ~sum & 0xFFFF;
 
-  this -> iphdr -> check = (uint16_t)sum;
+  this -> iphdr -> check = htons((uint16_t)sum);
 
   memcpy(pkt, this -> iphdr, this -> header_len);
   if(pktbodysize > 0) {
     memcpy((char*)pkt + this -> header_len, pktbody, pktbodysize);
   }
-  
-  sendto(this -> sockfd, pkt, this -> header_len + pktbodysize, 0, (struct sockaddr*)&sockaddr, sizeof(struct sockaddr_in));
+
+  printf("sendto!");
+  int foo = sendto(this -> sockfd, pkt, this -> header_len + pktbodysize, 0, (struct sockaddr*)&sockaddr, sizeof(sockaddr));
+
+  printf("%d\n", foo);
   return 0;
 }
