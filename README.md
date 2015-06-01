@@ -1,6 +1,6 @@
 # AncientNM
 Network monitoring daemon using raw socket.
-Intended to run on *uClibc++* environment. Since uClibc++ does not support most C++ features, code should be limited to fit in uClibc++. See uClibc++ FAQ. [http://cxx.uclibc.org/faq.html]
+Intended to run on **uClibc++** environment. Since uClibc++ does not support most C++ features, code should be limited to fit in uClibc++. See uClibc++ FAQ. [http://cxx.uclibc.org/faq.html]
 
 In some networks, network administrators block ICMP packet. It prevents using ordinary ping to monitor network condition.
 To workaround this, this project uses "stealth ping" which uses half-open TCP connection.
